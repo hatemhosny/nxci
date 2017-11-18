@@ -1,0 +1,45 @@
+# Javascript Node CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-javascript/ for more details
+#
+version: 2
+jobs:
+  build:
+    docker:
+      # specify the version you desire here
+      - image: circleci/node:8.9.1-browsers
+
+    # parallelism: 4
+    working_directory: ~/nxci
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-{{ .Branch }}-{{ checksum "package.json" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-{{ .Branch }}-
+
+      - run:
+          name: install-dependencies
+          command: npm install
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-{{ .Branch }}-{{ checksum "package.json" }}
+
+      - run:
+          name: angular-build
+          command: npm run build:aot
+
+      - run:
+          name: angular-test
+          command: npm test -- --watch=false
+
+
+      - run:
+          name: angular-lint
+          command: npm run lint
